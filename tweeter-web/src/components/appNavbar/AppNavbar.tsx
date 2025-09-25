@@ -1,5 +1,4 @@
 import "./AppNavbar.css";
-import { useContext } from "react";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import Image from "react-bootstrap/Image";

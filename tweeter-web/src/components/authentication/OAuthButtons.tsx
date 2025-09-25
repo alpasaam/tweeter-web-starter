@@ -1,8 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useContext } from "react";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
-import { ToastType } from "../toaster/Toast";
-import { ToastActionsContext } from "../toaster/ToastContexts";
 import { useMessageActions } from "../toaster/MessageHooks";
 
 interface Props {
