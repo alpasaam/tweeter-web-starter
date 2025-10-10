@@ -1,4 +1,4 @@
-import { User, AuthToken } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
 import { Buffer } from "buffer";
 
@@ -11,78 +11,30 @@ export interface RegisterView {
     authToken: AuthToken,
     remember: boolean
   ) => void;
+  setImageUrl: (url: string) => void;
+  setImageBytes: (bytes: Uint8Array) => void;
+  setImageFileExtension: (extension: string) => void;
+  setIsLoading: (isLoading: boolean) => void;
+  firstName: string;
+  lastName: string;
+  alias: string;
+  password: string;
+  imageBytes: Uint8Array;
+  imageFileExtension: string;
+  rememberMe: boolean;
 }
 
 export class RegisterPresenter {
-  private userService = new UserService();
+  private service: UserService = new UserService();
   private view: RegisterView;
-  private _imageUrl: string = "";
-  private _imageFileExtension: string = "";
-  private imageBytes: Uint8Array = new Uint8Array();
 
   constructor(view: RegisterView) {
     this.view = view;
   }
 
-  public get imageUrl() {
-    return this._imageUrl;
-  }
-
-  public get imageFileExtension() {
-    return this._imageFileExtension;
-  }
-
-  public isRegistrationFormValid(
-    firstName: string,
-    lastName: string,
-    alias: string,
-    password: string
-  ): boolean {
-    return (
-      firstName?.trim().length > 0 &&
-      lastName?.trim().length > 0 &&
-      alias?.trim().length > 0 &&
-      password?.length > 0 &&
-      this._imageUrl.length > 0 &&
-      this._imageFileExtension.length > 0
-    );
-  }
-
-  public doRegister = async (
-    firstName: string,
-    lastName: string,
-    alias: string,
-    password: string,
-    rememberMe: boolean
-  ) => {
-    try {
-      const [user, authToken] = await this.userService.register(
-        firstName,
-        lastName,
-        alias,
-        password,
-        this.imageBytes,
-        this._imageFileExtension
-      );
-
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
-      this.view.navigate(`/feed/${user.alias}`);
-      return true;
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to register user because of exception: ${error}`
-      );
-      return false;
-    }
-  };
-
-  private getFileExtension = (file: File): string | undefined => {
-    return file.name.split(".").pop();
-  };
-
-  public handleImageFile = (file: File | undefined) => {
+  public handleImageFile(file: File | undefined) {
     if (file) {
-      this._imageUrl = URL.createObjectURL(file);
+      this.view.setImageUrl(URL.createObjectURL(file));
 
       const reader = new FileReader();
       reader.onload = (event: ProgressEvent<FileReader>) => {
@@ -97,18 +49,46 @@ export class RegisterPresenter {
           "base64"
         );
 
-        this.imageBytes = bytes;
+        this.view.setImageBytes(bytes);
       };
       reader.readAsDataURL(file);
 
       // Set image file extension (and move to a separate method)
       const fileExtension = this.getFileExtension(file);
       if (fileExtension) {
-        this._imageFileExtension = fileExtension;
+        this.view.setImageFileExtension(fileExtension);
       }
     } else {
-      this._imageUrl = "";
-      this.imageBytes = new Uint8Array();
+      this.view.setImageUrl("");
+      this.view.setImageBytes(new Uint8Array());
+    }
+  }
+
+  getFileExtension = (file: File): string | undefined => {
+    return file.name.split(".").pop();
+  };
+
+  doRegister = async () => {
+    try {
+      this.view.setIsLoading(true);
+
+      const [user, authToken] = await this.service.register(
+        this.view.firstName,
+        this.view.lastName,
+        this.view.alias,
+        this.view.password,
+        this.view.imageBytes,
+        this.view.imageFileExtension
+      );
+
+      this.view.updateUserInfo(user, user, authToken, this.view.rememberMe);
+      this.view.navigate(`/feed/${user.alias}`);
+    } catch (error) {
+      this.view.displayErrorMessage(
+        `Failed to register user because of exception: ${error}`
+      );
+    } finally {
+      this.view.setIsLoading(false);
     }
   };
 }
