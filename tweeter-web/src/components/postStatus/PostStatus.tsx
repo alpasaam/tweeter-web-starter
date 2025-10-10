@@ -1,6 +1,5 @@
 import "./PostStatus.css";
 import { useRef, useState } from "react";
-import { AuthToken, Status } from "tweeter-shared";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo } from "../userInfo/UserInfoHooks";
 import {
