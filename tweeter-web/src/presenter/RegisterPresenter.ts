@@ -15,13 +15,6 @@ export interface RegisterView {
   setImageBytes: (bytes: Uint8Array) => void;
   setImageFileExtension: (extension: string) => void;
   setIsLoading: (isLoading: boolean) => void;
-  firstName: string;
-  lastName: string;
-  alias: string;
-  password: string;
-  imageBytes: Uint8Array;
-  imageFileExtension: string;
-  rememberMe: boolean;
 }
 
 export class RegisterPresenter {
@@ -68,20 +61,28 @@ export class RegisterPresenter {
     return file.name.split(".").pop();
   };
 
-  doRegister = async () => {
+  public async doRegister(
+    firstName?: string,
+    lastName?: string,
+    alias?: string,
+    password?: string,
+    imageBytes?: Uint8Array,
+    imageFileExtension?: string,
+    rememberMe?: boolean
+  ) {
     try {
       this.view.setIsLoading(true);
 
       const [user, authToken] = await this.service.register(
-        this.view.firstName,
-        this.view.lastName,
-        this.view.alias,
-        this.view.password,
-        this.view.imageBytes,
-        this.view.imageFileExtension
+        firstName!,
+        lastName!,
+        alias!,
+        password!,
+        imageBytes!,
+        imageFileExtension!
       );
 
-      this.view.updateUserInfo(user, user, authToken, this.view.rememberMe);
+      this.view.updateUserInfo(user, user, authToken, rememberMe!);
       this.view.navigate(`/feed/${user.alias}`);
     } catch (error) {
       this.view.displayErrorMessage(
@@ -90,5 +91,5 @@ export class RegisterPresenter {
     } finally {
       this.view.setIsLoading(false);
     }
-  };
+  }
 }

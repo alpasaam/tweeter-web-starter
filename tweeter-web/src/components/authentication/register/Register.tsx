@@ -31,13 +31,6 @@ const Register = () => {
     setImageBytes,
     setImageFileExtension,
     setIsLoading,
-    firstName,
-    lastName,
-    alias,
-    password,
-    imageBytes,
-    imageFileExtension,
-    rememberMe,
   };
 
   const presenterRef = useRef<RegisterPresenter | null>(null);
@@ -72,7 +65,15 @@ const Register = () => {
   };
 
   const doRegister = async () => {
-    presenterRef.current!.doRegister();
+    presenterRef.current!.doRegister(
+      firstName,
+      lastName,
+      alias,
+      password,
+      imageBytes,
+      imageFileExtension,
+      rememberMe
+    );
   };
 
   const inputFieldFactory = () => {
