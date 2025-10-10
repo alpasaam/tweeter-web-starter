@@ -37,6 +37,7 @@ const PostStatus = () => {
     }
   };
 
+  // TODO: This doesn't have FakeData but needs to be moved to a service class
   const postStatus = async (
     authToken: AuthToken,
     newStatus: Status

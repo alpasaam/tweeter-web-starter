@@ -14,6 +14,9 @@ import { AuthToken, FakeData, Status, User } from "tweeter-shared";
 import UserItemScroller from "./components/mainLayout/UserItemScroller";
 import StatusItemScroller from "./components/mainLayout/StatusItemScroller";
 import { useUserInfo } from "./components/userInfo/UserInfoHooks";
+import { UserItemView } from "./presenter/UserItemPresenter";
+import { FolloweePresenter } from "./presenter/FolloweePresenter";
+import { FollowerPresenter } from "./presenter/FollowerPresenter";
 
 const App = () => {
   const { currentUser, authToken } = useUserInfo();
@@ -38,26 +41,7 @@ const App = () => {
 
 const AuthenticatedRoutes = () => {
   const { displayedUser } = useUserInfo();
-
-  const loadMoreFollowees = async (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastItem: User | null
-  ): Promise<[User[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
-  };
-
-  const loadMoreFollowers = async (
-    authToken: AuthToken,
-    userAlias: string,
-    pageSize: number,
-    lastItem: User | null
-  ): Promise<[User[], boolean]> => {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
-  };
+  let itemDescription: string | null = null;
 
   const loadMoreFeedItems = async (
     authToken: AuthToken,
@@ -91,8 +75,8 @@ const AuthenticatedRoutes = () => {
           element={
             <StatusItemScroller
               key={`feed-${displayedUser!.alias}`}
-              itemDescription="feed"
               featurePath="/feed"
+              itemDescription="feed"
               loadMorePageItems={loadMoreFeedItems}
             />
           }
@@ -102,8 +86,8 @@ const AuthenticatedRoutes = () => {
           element={
             <StatusItemScroller
               key={`story-${displayedUser!.alias}`}
-              itemDescription="story"
               featurePath="/story"
+              itemDescription="story"
               loadMorePageItems={loadMoreStoryItems}
             />
           }
@@ -113,9 +97,10 @@ const AuthenticatedRoutes = () => {
           element={
             <UserItemScroller
               key={`followees-${displayedUser!.alias}`}
-              itemDescription="followees"
               featurePath="/followees"
-              loadMore={loadMoreFollowees}
+              presenterFactory={(view: UserItemView) =>
+                new FolloweePresenter(view)
+              }
             />
           }
         />
@@ -124,9 +109,10 @@ const AuthenticatedRoutes = () => {
           element={
             <UserItemScroller
               key={`followers-${displayedUser!.alias}`}
-              itemDescription="followers"
               featurePath="/followers"
-              loadMore={loadMoreFollowers}
+              presenterFactory={(view: UserItemView) =>
+                new FollowerPresenter(view)
+              }
             />
           }
         />
