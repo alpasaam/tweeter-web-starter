@@ -20,12 +20,12 @@ export class LoginPresenter {
     this.view = view;
   }
 
-  public doLogin = async (
+  public async doLogin(
     alias: string,
     password: string,
     rememberMe: boolean,
     originalUrl: string | undefined
-  ) => {
+  ): Promise<boolean> {
     try {
       const [user, authToken] = await this.userService.login(alias, password);
 
@@ -43,9 +43,9 @@ export class LoginPresenter {
       );
       return false;
     }
-  };
+  }
 
-  public isLoginFormValid = (alias: string, password: string): boolean => {
+  public isLoginFormValid(alias: string, password: string): boolean {
     return alias?.trim().length > 0 && password?.trim().length > 0;
-  };
+  }
 }
