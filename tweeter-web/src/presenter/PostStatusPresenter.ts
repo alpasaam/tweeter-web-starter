@@ -4,7 +4,7 @@ import { StatusService } from "../model.service/StatusService";
 export interface PostStatusView {
   setPost: (postMessage: string) => void;
   displayErrorMessage: (message: string) => void;
-  displayInfoMessage: (message: string, duration: number) => void;
+  displayInfoMessage: (message: string, duration: number) => string;
   deleteMessage: (messageId: string) => void;
 }
 
@@ -21,7 +21,7 @@ export class PostStatusPresenter {
     currentUser: User,
     post: string
   ) {
-    var postingStatusToastId;
+    var postingStatusToastId = "";
     try {
       postingStatusToastId = this.view.displayInfoMessage(
         "Posting status...",

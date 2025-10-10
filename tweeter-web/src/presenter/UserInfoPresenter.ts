@@ -6,7 +6,7 @@ export interface UserInfoView {
   setFolloweeCount: (followCount: number) => void;
   setFollowerCount: (followCount: number) => void;
   displayErrorMessage: (message: string) => void;
-  displayInfoMessage: (message: string, duration: number) => void;
+  displayInfoMessage: (message: string, duration: number) => string;
   deleteMessage: (messageId: string) => void;
 }
 
@@ -19,7 +19,7 @@ export class UserInfoPresenter {
   }
 
   public async followDisplayedUser(displayedUser: User, authToken: AuthToken) {
-    var followingUserToast;
+    var followingUserToast = null;
     try {
       followingUserToast = this.view.displayInfoMessage(
         `Following ${displayedUser!.name}...`,
@@ -47,7 +47,7 @@ export class UserInfoPresenter {
     displayedUser: User,
     authToken: AuthToken
   ): Promise<void> {
-    var unfollowingUserToast;
+    var unfollowingUserToast = null;
     try {
       unfollowingUserToast = this.view.displayInfoMessage(
         `Unfollowing ${displayedUser!.name}...`,
