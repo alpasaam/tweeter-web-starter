@@ -11,7 +11,7 @@ export interface UserInfoView {
 }
 
 export class UserInfoPresenter {
-  private followService: FollowService = new FollowService();
+  private service: FollowService = new FollowService();
   private view: UserInfoView;
 
   constructor(view: UserInfoView) {
@@ -26,7 +26,7 @@ export class UserInfoPresenter {
         0
       );
 
-      const [followerCount, followeeCount] = await this.followService.follow(
+      const [followerCount, followeeCount] = await this.service.follow(
         authToken!,
         displayedUser!
       );
@@ -54,7 +54,7 @@ export class UserInfoPresenter {
         0
       );
 
-      const [followerCount, followeeCount] = await this.followService.unfollow(
+      const [followerCount, followeeCount] = await this.service.unfollow(
         authToken!,
         displayedUser!
       );
@@ -81,7 +81,7 @@ export class UserInfoPresenter {
         this.view.setIsFollower(false);
       } else {
         this.view.setIsFollower(
-          await this.followService.getIsFollowerStatus(
+          await this.service.getIsFollowerStatus(
             authToken!,
             currentUser!,
             displayedUser!
@@ -98,7 +98,7 @@ export class UserInfoPresenter {
   public async setNumbFollowees(authToken: AuthToken, displayedUser: User) {
     try {
       this.view.setFolloweeCount(
-        await this.followService.getFolloweeCount(authToken, displayedUser)
+        await this.service.getFolloweeCount(authToken, displayedUser)
       );
     } catch (error) {
       this.view.displayErrorMessage(
@@ -110,7 +110,7 @@ export class UserInfoPresenter {
   public async setNumbFollowers(authToken: AuthToken, displayedUser: User) {
     try {
       this.view.setFollowerCount(
-        await this.followService.getFollowerCount(authToken, displayedUser)
+        await this.service.getFollowerCount(authToken, displayedUser)
       );
     } catch (error) {
       this.view.displayErrorMessage(

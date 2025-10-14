@@ -42,6 +42,7 @@ export abstract class UserItemPresenter {
     this._lastItem = null;
     this._hasMoreItems = true;
   }
+
   public async getUser(
     authToken: AuthToken,
     alias: string

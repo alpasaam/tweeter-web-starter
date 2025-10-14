@@ -22,7 +22,8 @@ export class FeedPresenter extends StatusItemPresenter {
       );
 
       this.hasMoreItems = hasMore;
-      this.lastItem = newItems[newItems.length - 1];
+      this.lastItem =
+        newItems.length > 0 ? newItems[newItems.length - 1] : null;
       this.view.addItems(newItems);
     } catch (error) {
       this.view.displayErrorMessage(
