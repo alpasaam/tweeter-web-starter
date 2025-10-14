@@ -13,7 +13,7 @@ export interface LoginView {
 }
 
 export class LoginPresenter {
-  private service: UserService = new UserService();
+  private userService: UserService = new UserService();
   private view: LoginView;
 
   constructor(view: LoginView) {
@@ -27,7 +27,7 @@ export class LoginPresenter {
     originalUrl: string | undefined
   ): Promise<boolean> {
     try {
-      const [user, authToken] = await this.service.login(alias, password);
+      const [user, authToken] = await this.userService.login(alias, password);
 
       this.view.updateUserInfo(user, user, authToken, rememberMe);
 
