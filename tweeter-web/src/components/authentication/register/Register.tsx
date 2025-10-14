@@ -6,7 +6,11 @@ import AuthenticationFormLayout from "../AuthenticationFormLayout";
 import AuthenticationFields from "../AuthenticationFields";
 import { useMessageActions } from "../../toaster/MessageHooks";
 import { useUserInfoActions } from "../../userInfo/UserInfoHooks";
-import { RegisterPresenter } from "../../../presenter/RegisterPresenter";
+import {
+  RegisterPresenter,
+  RegisterView,
+} from "../../../presenter/RegisterPresenter";
+import { User, AuthToken } from "tweeter-shared";
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -23,11 +27,13 @@ const Register = () => {
   const { updateUserInfo } = useUserInfoActions();
   const { displayErrorMessage } = useMessageActions();
 
-  const view = {
+  const view: RegisterView = {
     displayErrorMessage,
-    navigate,
-    updateUserInfo,
+    authenticate: (user, authToken) => {
+      updateUserInfo(user, user, authToken, rememberMe);
+    },
     setImageUrl,
+    navigate,
     setImageBytes,
     setImageFileExtension,
     setIsLoading,
@@ -71,8 +77,7 @@ const Register = () => {
       alias,
       password,
       imageBytes,
-      imageFileExtension,
-      rememberMe
+      imageFileExtension
     );
   };
 

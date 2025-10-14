@@ -25,7 +25,9 @@ const Login = (props: Props) => {
   const view: LoginView = {
     displayErrorMessage,
     navigate,
-    updateUserInfo,
+    authenticate: (user, authToken) => {
+      updateUserInfo(user, user, authToken, rememberMe);
+    },
   };
 
   const presenterRef = useRef<LoginPresenter | null>(null);
@@ -46,12 +48,7 @@ const Login = (props: Props) => {
   const doLogin = async () => {
     try {
       setIsLoading(true);
-      await presenterRef.current!.doLogin(
-        alias,
-        password,
-        rememberMe,
-        props.originalUrl
-      );
+      await presenterRef.current!.doLogin(alias, password, props.originalUrl);
     } finally {
       setIsLoading(false);
     }

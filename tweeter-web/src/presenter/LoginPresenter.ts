@@ -3,12 +3,7 @@ import { AuthToken, User } from "tweeter-shared";
 
 export interface LoginView {
   displayErrorMessage: (message: string) => void;
-  updateUserInfo: (
-    currentUser: User,
-    displayedUser: User | null,
-    authToken: AuthToken,
-    remember: boolean
-  ) => void;
+  authenticate: (user: User, authToken: AuthToken) => void;
   navigate: (url: string) => void;
 }
 
@@ -23,13 +18,12 @@ export class LoginPresenter {
   public async doLogin(
     alias: string,
     password: string,
-    rememberMe: boolean,
     originalUrl: string | undefined
   ): Promise<boolean> {
     try {
       const [user, authToken] = await this.userService.login(alias, password);
 
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
+      this.view.authenticate(user, authToken);
 
       if (!!originalUrl) {
         this.view.navigate(originalUrl);

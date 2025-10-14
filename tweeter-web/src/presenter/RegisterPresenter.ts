@@ -4,12 +4,7 @@ import { Buffer } from "buffer";
 
 export interface RegisterView {
   displayErrorMessage: (message: string) => void;
-  updateUserInfo: (
-    currentUser: User,
-    displayedUser: User | null,
-    authToken: AuthToken,
-    remember: boolean
-  ) => void;
+  authenticate: (user: User, authToken: AuthToken) => void;
   navigate: (url: string) => void;
   setImageUrl: (url: string) => void;
   setImageBytes: (bytes: Uint8Array) => void;
@@ -67,8 +62,7 @@ export class RegisterPresenter {
     alias?: string,
     password?: string,
     imageBytes?: Uint8Array,
-    imageFileExtension?: string,
-    rememberMe?: boolean
+    imageFileExtension?: string
   ) {
     try {
       this.view.setIsLoading(true);
@@ -82,7 +76,7 @@ export class RegisterPresenter {
         imageFileExtension!
       );
 
-      this.view.updateUserInfo(user, user, authToken, rememberMe!);
+      this.view.authenticate(user, authToken);
       this.view.navigate(`/feed/${user.alias}`);
     } catch (error) {
       this.view.displayErrorMessage(
