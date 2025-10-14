@@ -3,13 +3,13 @@ import { AuthToken, User } from "tweeter-shared";
 
 export interface LoginView {
   displayErrorMessage: (message: string) => void;
-  navigate: (url: string) => void;
   updateUserInfo: (
     currentUser: User,
     displayedUser: User | null,
     authToken: AuthToken,
     remember: boolean
   ) => void;
+  navigate: (url: string) => void;
 }
 
 export class LoginPresenter {
@@ -31,7 +31,7 @@ export class LoginPresenter {
 
       this.view.updateUserInfo(user, user, authToken, rememberMe);
 
-      if (originalUrl) {
+      if (!!originalUrl) {
         this.view.navigate(originalUrl);
       } else {
         this.view.navigate(`/feed/${user.alias}`);

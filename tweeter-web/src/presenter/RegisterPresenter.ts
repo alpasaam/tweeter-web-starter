@@ -4,13 +4,13 @@ import { Buffer } from "buffer";
 
 export interface RegisterView {
   displayErrorMessage: (message: string) => void;
-  navigate: (url: string) => void;
   updateUserInfo: (
     currentUser: User,
     displayedUser: User | null,
     authToken: AuthToken,
     remember: boolean
   ) => void;
+  navigate: (url: string) => void;
   setImageUrl: (url: string) => void;
   setImageBytes: (bytes: Uint8Array) => void;
   setImageFileExtension: (extension: string) => void;
