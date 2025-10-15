@@ -1,23 +1,40 @@
 import { AuthToken, User } from "tweeter-shared";
-import { UserService } from "../model.service/UserService";
 import { Buffer } from "buffer";
+import { AuthView } from "./Presenter";
+import { AuthItemPresenter } from "./AuthItemPresenter";
 
-export interface RegisterView {
-  displayErrorMessage: (message: string) => void;
-  authenticate: (user: User, authToken: AuthToken) => void;
-  navigate: (url: string) => void;
+export interface RegisterView extends AuthView {
   setImageUrl: (url: string) => void;
   setImageBytes: (bytes: Uint8Array) => void;
   setImageFileExtension: (extension: string) => void;
-  setIsLoading: (isLoading: boolean) => void;
 }
 
-export class RegisterPresenter {
-  private service: UserService = new UserService();
-  private view: RegisterView;
-
-  constructor(view: RegisterView) {
-    this.view = view;
+export class RegisterPresenter extends AuthItemPresenter<RegisterView> {
+  protected doAuthenticatedOperation(
+    userAlias: string,
+    password: string,
+    firstName?: string,
+    lastName?: string,
+    imageBytes?: Uint8Array,
+    imageFileExtension?: string
+  ): Promise<[User, AuthToken]> {
+    return this.service.register(
+      userAlias,
+      password,
+      firstName!,
+      lastName!,
+      imageBytes!,
+      imageFileExtension!
+    );
+  }
+  protected notifyAndNavigate(
+    originalUrl: string | undefined,
+    user: User
+  ): void {
+    this.view.navigate(`/feed/${user.alias}`);
+  }
+  protected itemDescription(): string {
+    return "register user";
   }
 
   public handleImageFile(file: File | undefined) {
@@ -55,35 +72,4 @@ export class RegisterPresenter {
   getFileExtension = (file: File): string | undefined => {
     return file.name.split(".").pop();
   };
-
-  public async doRegister(
-    firstName?: string,
-    lastName?: string,
-    alias?: string,
-    password?: string,
-    imageBytes?: Uint8Array,
-    imageFileExtension?: string
-  ) {
-    try {
-      this.view.setIsLoading(true);
-
-      const [user, authToken] = await this.service.register(
-        firstName!,
-        lastName!,
-        alias!,
-        password!,
-        imageBytes!,
-        imageFileExtension!
-      );
-
-      this.view.authenticate(user, authToken);
-      this.view.navigate(`/feed/${user.alias}`);
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to register user because of exception: ${error}`
-      );
-    } finally {
-      this.view.setIsLoading(false);
-    }
-  }
 }

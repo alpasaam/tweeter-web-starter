@@ -10,7 +10,6 @@ import {
   RegisterPresenter,
   RegisterView,
 } from "../../../presenter/RegisterPresenter";
-import { User, AuthToken } from "tweeter-shared";
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -71,11 +70,12 @@ const Register = () => {
   };
 
   const doRegister = async () => {
-    presenterRef.current!.doRegister(
-      firstName,
-      lastName,
+    presenterRef.current!.doAuthenticate(
       alias,
       password,
+      undefined,
+      firstName,
+      lastName,
       imageBytes,
       imageFileExtension
     );

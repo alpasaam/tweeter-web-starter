@@ -1,3 +1,6 @@
+import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
+import { User } from "tweeter-shared/dist/model/domain/User";
+
 export interface View {
   displayErrorMessage: (message: string) => void;
 }
@@ -5,6 +8,12 @@ export interface View {
 export interface MessageView extends View {
   displayInfoMessage: (message: string, duration: number) => string;
   deleteMessage: (messageId: string) => void;
+}
+
+export interface AuthView extends View {
+  authenticate: (user: User, authToken: AuthToken) => void;
+  navigate: (url: string) => void;
+  setIsLoading: (isLoading: boolean) => void;
 }
 
 export abstract class Presenter<V extends View> {

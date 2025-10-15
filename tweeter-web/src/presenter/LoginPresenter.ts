@@ -1,45 +1,28 @@
+import { User } from "tweeter-shared/dist/model/domain/User";
 import { UserService } from "../model.service/UserService";
-import { AuthToken, User } from "tweeter-shared";
-
-export interface LoginView {
-  displayErrorMessage: (message: string) => void;
-  authenticate: (user: User, authToken: AuthToken) => void;
-  navigate: (url: string) => void;
-}
-
-export class LoginPresenter {
-  private userService: UserService = new UserService();
-  private view: LoginView;
-
-  constructor(view: LoginView) {
-    this.view = view;
+import { AuthView, Presenter } from "./Presenter";
+import { AuthToken } from "tweeter-shared";
+import { AuthItemPresenter } from "./AuthItemPresenter";
+export class LoginPresenter extends AuthItemPresenter<AuthView> {
+  protected doAuthenticatedOperation(
+    userAlias: string,
+    password: string
+  ): Promise<[User, AuthToken]> {
+    return this.service.login(userAlias, password);
   }
 
-  public async doLogin(
-    alias: string,
-    password: string,
-    originalUrl: string | undefined
-  ): Promise<boolean> {
-    try {
-      const [user, authToken] = await this.userService.login(alias, password);
-
-      this.view.authenticate(user, authToken);
-
-      if (!!originalUrl) {
-        this.view.navigate(originalUrl);
-      } else {
-        this.view.navigate(`/feed/${user.alias}`);
-      }
-      return true;
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to log user in because of exception: ${error}`
-      );
-      return false;
+  protected notifyAndNavigate(
+    originalUrl: string | undefined,
+    user: User
+  ): void {
+    if (!!originalUrl) {
+      this.view.navigate(originalUrl);
+    } else {
+      this.view.navigate(`/feed/${user.alias}`);
     }
   }
 
-  public isLoginFormValid(alias: string, password: string): boolean {
-    return alias?.trim().length > 0 && password?.trim().length > 0;
+  protected itemDescription(): string {
+    return "log user in";
   }
 }

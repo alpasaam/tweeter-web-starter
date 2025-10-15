@@ -6,7 +6,8 @@ import AuthenticationFormLayout from "../AuthenticationFormLayout";
 import AuthenticationFields from "../AuthenticationFields";
 import { useMessageActions } from "../../toaster/MessageHooks";
 import { useUserInfoActions } from "../../userInfo/UserInfoHooks";
-import { LoginView, LoginPresenter } from "../../../presenter/LoginPresenter";
+import { LoginPresenter } from "../../../presenter/LoginPresenter";
+import { AuthView, Presenter } from "../../../presenter/Presenter";
 
 interface Props {
   originalUrl?: string;
@@ -22,12 +23,13 @@ const Login = (props: Props) => {
   const { updateUserInfo } = useUserInfoActions();
   const { displayErrorMessage } = useMessageActions();
 
-  const view: LoginView = {
+  const view: AuthView = {
     displayErrorMessage,
     navigate,
     authenticate: (user, authToken) => {
       updateUserInfo(user, user, authToken, rememberMe);
     },
+    setIsLoading,
   };
 
   const presenterRef = useRef<LoginPresenter | null>(null);
@@ -46,12 +48,11 @@ const Login = (props: Props) => {
   };
 
   const doLogin = async () => {
-    try {
-      setIsLoading(true);
-      await presenterRef.current!.doLogin(alias, password, props.originalUrl);
-    } finally {
-      setIsLoading(false);
-    }
+    await presenterRef.current!.doAuthenticate(
+      alias,
+      password,
+      props.originalUrl
+    );
   };
 
   const inputFieldFactory = () => {
