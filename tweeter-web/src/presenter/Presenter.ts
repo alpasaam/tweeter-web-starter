@@ -19,7 +19,7 @@ export interface AuthView extends View {
 export abstract class Presenter<V extends View> {
   private _view: V;
 
-  protected constructor(view: V) {
+  public constructor(view: V) {
     this._view = view;
   }
 

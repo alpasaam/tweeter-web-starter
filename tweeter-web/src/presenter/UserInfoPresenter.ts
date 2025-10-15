@@ -19,7 +19,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView> {
     isFollowerAfter: boolean,
     operation: (auth: AuthToken, user: User) => Promise<[number, number]>
   ) {
-    var toast = null;
+    var toast: string | null = null;
     try {
       await this.doFailureReportingOperation(async () => {
         toast = this.view.displayInfoMessage(

@@ -12,7 +12,7 @@ import { Service } from "../../model.service/Service";
 interface Props<T> {
   featurePath: string;
   presenterFactory: (view: PagedItemView<T>) => PageItemPresenter<T, Service>;
-  itemComponentFactory: (item: T, featurePath: string) => JSX.Element;
+  itemComponentFactory: (item: T) => JSX.Element;
 }
 
 const ItemScroller = <T,>(props: Props<T>) => {
@@ -80,7 +80,7 @@ const ItemScroller = <T,>(props: Props<T>) => {
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-            {props.itemComponentFactory(item, props.featurePath)}
+            {props.itemComponentFactory(item)}
           </div>
         ))}
       </InfiniteScroll>

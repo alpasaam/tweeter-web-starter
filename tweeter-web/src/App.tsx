@@ -69,8 +69,8 @@ const AuthenticatedRoutes = () => {
               presenterFactory={(view: PagedItemView<Status>) =>
                 new FeedPresenter(view)
               }
-              itemComponentFactory={(item: Status, featurePath: string) => (
-                <StatusItem status={item} featurePath={featurePath} />
+              itemComponentFactory={(item: Status) => (
+                <StatusItem status={item} featurePath="/feed" />
               )}
             />
           }
@@ -91,8 +91,8 @@ const AuthenticatedRoutes = () => {
               presenterFactory={(view: PagedItemView<Status>) =>
                 new StoryPresenter(view)
               }
-              itemComponentFactory={(item: Status, featurePath: string) => (
-                <StatusItem status={item} featurePath={featurePath} />
+              itemComponentFactory={(item: Status) => (
+                <StatusItem status={item} featurePath="/story" />
               )}
             />
           }
@@ -113,8 +113,8 @@ const AuthenticatedRoutes = () => {
               presenterFactory={(view: PagedItemView<User>) =>
                 new FolloweePresenter(view)
               }
-              itemComponentFactory={(item: User, featurePath: string) => (
-                <UserItem user={item} featurePath={featurePath} />
+              itemComponentFactory={(item: User) => (
+                <UserItem user={item} featurePath="/followees" />
               )}
             />
           }
@@ -135,8 +135,8 @@ const AuthenticatedRoutes = () => {
               presenterFactory={(view: PagedItemView<User>) =>
                 new FollowerPresenter(view)
               }
-              itemComponentFactory={(item: User, featurePath: string) => (
-                <UserItem user={item} featurePath={featurePath} />
+              itemComponentFactory={(item: User) => (
+                <UserItem user={item} featurePath="/followers" />
               )}
             />
           }
