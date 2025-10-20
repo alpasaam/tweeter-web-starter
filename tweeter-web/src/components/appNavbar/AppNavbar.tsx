@@ -6,9 +6,9 @@ import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfo, useUserInfoActions } from "../userInfo/UserInfoHooks";
 import { useRef } from "react";
 import {
-  AppNavBarView,
+  AppNavbarView,
   AppNavbarPresenter,
-} from "../../presenter/AppNavBarPresenter";
+} from "../../presenter/AppNavbarPresenter";
 
 const AppNavbar = () => {
   const location = useLocation();
@@ -18,7 +18,7 @@ const AppNavbar = () => {
   const { displayInfoMessage, displayErrorMessage, deleteMessage } =
     useMessageActions();
 
-  const listener: AppNavBarView = {
+  const listener: AppNavbarView = {
     displayErrorMessage,
     displayInfoMessage,
     deleteMessage,
