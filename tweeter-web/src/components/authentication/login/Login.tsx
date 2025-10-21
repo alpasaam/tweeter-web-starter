@@ -1,6 +1,6 @@
 import "./Login.css";
 import "bootstrap/dist/css/bootstrap.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AuthenticationFormLayout from "../AuthenticationFormLayout";
 import AuthenticationFields from "../AuthenticationFields";
@@ -11,6 +11,7 @@ import { AuthView, Presenter } from "../../../presenter/Presenter";
 
 interface Props {
   originalUrl?: string;
+  presenter?: LoginPresenter;
 }
 
 const Login = (props: Props) => {
@@ -23,7 +24,7 @@ const Login = (props: Props) => {
   const { updateUserInfo } = useUserInfoActions();
   const { displayErrorMessage } = useMessageActions();
 
-  const view: AuthView = {
+  const listener: AuthView = {
     displayErrorMessage,
     navigate,
     authenticate: (user, authToken) => {
@@ -34,8 +35,13 @@ const Login = (props: Props) => {
 
   const presenterRef = useRef<LoginPresenter | null>(null);
   if (!presenterRef.current) {
-    presenterRef.current = new LoginPresenter(view);
+    presenterRef.current = props.presenter ?? new LoginPresenter(listener);
   }
+
+  // Create a new presenter whenever 'rememberMe' is updated so it will have a listener with the correct 'rememberMe' value
+  useEffect(() => {
+    presenterRef.current = props.presenter ?? new LoginPresenter(listener);
+  }, [rememberMe]);
 
   const checkSubmitButtonStatus = (): boolean => {
     return !alias || !password;
