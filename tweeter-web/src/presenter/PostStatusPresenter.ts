@@ -20,7 +20,7 @@ export class PostStatusPresenter extends Presenter<PostStatusView> {
   ) {
     var postingStatusToastId = "";
     try {
-      this.doFailureReportingOperation(async () => {
+      await this.doFailureReportingOperation(async () => {
         postingStatusToastId = this.view.displayInfoMessage(
           "Posting status...",
           0
