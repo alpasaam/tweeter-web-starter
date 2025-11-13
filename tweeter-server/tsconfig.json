@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "target": "ES2022",
     "module": "commonjs",
-    "target": "ESNext",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
