@@ -1,4 +1,5 @@
-export interface GetUserRequest {
-  readonly token: string;
+import { AuthenticatedRequest } from "./AuthenticatedRequest";
+
+export interface GetUserRequest extends AuthenticatedRequest {
   readonly alias: string;
 }

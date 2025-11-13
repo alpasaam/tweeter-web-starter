@@ -1,4 +1,3 @@
-export interface LoginRequest {
-  readonly alias: string;
-  readonly password: string;
-}
+import { AuthenticationCredentials } from "./AuthenticationCredentials";
+
+export interface LoginRequest extends AuthenticationCredentials {}
