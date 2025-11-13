@@ -3,3 +3,8 @@
 /nodejs
 /layer
 
+# AWS deployment files
+*.zip
+*.pkg
+.aws-sam/
+
