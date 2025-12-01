@@ -3,7 +3,7 @@ import { S3DAO } from "../S3DAO";
 
 export class DynamoDBS3DAO implements S3DAO {
   private readonly client = new S3Client({ region: "us-west-2" });
-  private readonly bucketName = "tweeter-profile-images";
+  private readonly bucketName = "tweeter-profile-images-saam";
 
   async uploadImage(
     imageStringBase64: string,
