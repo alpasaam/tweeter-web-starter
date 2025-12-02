@@ -71,7 +71,7 @@ export class FollowService implements Service {
 
     const authToken = await authTokenDAO.getAuthToken(token);
     if (!authToken) {
-      throw new Error("Invalid token");
+      throw new Error("Unable to follow user. Please sign in again.");
     }
 
     const followerAlias = authToken.userAlias;
@@ -92,7 +92,7 @@ export class FollowService implements Service {
 
     const authToken = await authTokenDAO.getAuthToken(token);
     if (!authToken) {
-      throw new Error("Invalid token");
+      throw new Error("Unable to unfollow user. Please sign in again.");
     }
 
     const followerAlias = authToken.userAlias;

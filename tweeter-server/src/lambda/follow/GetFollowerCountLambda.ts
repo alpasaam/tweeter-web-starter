@@ -10,15 +10,27 @@ const followService = new FollowService(daoFactory);
 export const handler = async (
   request: GetCountRequest
 ): Promise<GetCountResponse> => {
-  await authorizationService.authorize(request.token);
-  const count = await followService.getFollowerCount(
-    request.token,
-    request.user
-  );
+  try {
+    await authorizationService.authorize(request.token);
+    const count = await followService.getFollowerCount(
+      request.token,
+      request.user
+    );
 
-  return {
-    success: true,
-    message: null,
-    count,
-  };
+    return {
+      success: true,
+      message: null,
+      count,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === "unauthorized") {
+      throw error;
+    }
+    return {
+      success: false,
+      message: errorMessage,
+      count: 0,
+    };
+  }
 };

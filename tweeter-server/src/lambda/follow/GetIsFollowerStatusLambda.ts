@@ -10,16 +10,28 @@ const followService = new FollowService(daoFactory);
 export const handler = async (
   request: IsFollowerRequest
 ): Promise<IsFollowerResponse> => {
-  await authorizationService.authorize(request.token);
-  const isFollower = await followService.getIsFollowerStatus(
-    request.token,
-    request.user,
-    request.selectedUser
-  );
+  try {
+    await authorizationService.authorize(request.token);
+    const isFollower = await followService.getIsFollowerStatus(
+      request.token,
+      request.user,
+      request.selectedUser
+    );
 
-  return {
-    success: true,
-    message: null,
-    isFollower,
-  };
+    return {
+      success: true,
+      message: null,
+      isFollower,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === "unauthorized") {
+      throw error;
+    }
+    return {
+      success: false,
+      message: errorMessage,
+      isFollower: false,
+    };
+  }
 };

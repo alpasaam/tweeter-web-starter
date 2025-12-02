@@ -50,7 +50,7 @@ export class StatusService implements Service {
 
     const status = Status.fromDto(newStatus);
     if (!status) {
-      throw new Error("Invalid status");
+      throw new Error("Unable to post status. Please try again.");
     }
 
     await statusDAO.putStatus(status);

@@ -14,18 +14,31 @@ const followService = new FollowService(daoFactory);
 export const handler = async (
   request: PagedItemRequest<UserDto>
 ): Promise<PagedItemResponse<UserDto>> => {
-  await authorizationService.authorize(request.token);
-  const [items, hasMore] = await followService.loadMoreFollowees(
-    request.token,
-    request.userAlias,
-    request.pageSize,
-    request.lastItem
-  );
+  try {
+    await authorizationService.authorize(request.token);
+    const [items, hasMore] = await followService.loadMoreFollowees(
+      request.token,
+      request.userAlias,
+      request.pageSize,
+      request.lastItem
+    );
 
-  return {
-    success: true,
-    message: null,
-    items: items,
-    hasMore,
-  };
+    return {
+      success: true,
+      message: null,
+      items: items,
+      hasMore,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === "unauthorized") {
+      throw error;
+    }
+    return {
+      success: false,
+      message: errorMessage,
+      items: [],
+      hasMore: false,
+    };
+  }
 };

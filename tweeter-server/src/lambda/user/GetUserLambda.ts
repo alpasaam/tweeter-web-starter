@@ -10,12 +10,24 @@ const userService = new UserService(daoFactory);
 export const handler = async (
   request: GetUserRequest
 ): Promise<GetUserResponse> => {
-  await authorizationService.authorize(request.token);
-  const user = await userService.getUser(request.token, request.alias);
+  try {
+    await authorizationService.authorize(request.token);
+    const user = await userService.getUser(request.token, request.alias);
 
-  return {
-    success: true,
-    message: null,
-    user,
-  };
+    return {
+      success: true,
+      message: null,
+      user,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === "unauthorized") {
+      throw error;
+    }
+    return {
+      success: false,
+      message: errorMessage,
+      user: null,
+    };
+  }
 };

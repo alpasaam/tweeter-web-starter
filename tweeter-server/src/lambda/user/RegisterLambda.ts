@@ -8,19 +8,29 @@ const userService = new UserService(daoFactory);
 export const handler = async (
   request: RegisterRequest
 ): Promise<LoginResponse> => {
-  const [user, authToken] = await userService.register(
-    request.firstName,
-    request.lastName,
-    request.alias,
-    request.password,
-    request.imageStringBase64,
-    request.imageFileExtension
-  );
+  try {
+    const [user, authToken] = await userService.register(
+      request.firstName,
+      request.lastName,
+      request.alias,
+      request.password,
+      request.imageStringBase64,
+      request.imageFileExtension
+    );
 
-  return {
-    success: true,
-    message: null,
-    user,
-    authToken,
-  };
+    return {
+      success: true,
+      message: null,
+      user,
+      authToken,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    return {
+      success: false,
+      message: errorMessage,
+      user: null,
+      authToken: null,
+    };
+  }
 };

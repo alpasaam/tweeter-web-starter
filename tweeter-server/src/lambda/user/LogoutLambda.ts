@@ -10,11 +10,22 @@ const userService = new UserService(daoFactory);
 export const handler = async (
   request: LogoutRequest
 ): Promise<TweeterResponse> => {
-  await authorizationService.authorize(request.token);
-  await userService.logout(request.token);
+  try {
+    await authorizationService.authorize(request.token);
+    await userService.logout(request.token);
 
-  return {
-    success: true,
-    message: null,
-  };
+    return {
+      success: true,
+      message: null,
+    };
+  } catch (error) {
+    const errorMessage = (error as Error).message;
+    if (errorMessage === "unauthorized") {
+      throw error;
+    }
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
 };
