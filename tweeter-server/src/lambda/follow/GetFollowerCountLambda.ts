@@ -12,16 +12,16 @@ export const handler = async (
 ): Promise<GetCountResponse> => {
   try {
     await authorizationService.authorize(request.token);
-    const count = await followService.getFollowerCount(
-      request.token,
-      request.user
-    );
+  const count = await followService.getFollowerCount(
+    request.token,
+    request.user
+  );
 
-    return {
-      success: true,
-      message: null,
-      count,
-    };
+  return {
+    success: true,
+    message: null,
+    count,
+  };
   } catch (error) {
     const errorMessage = (error as Error).message;
     if (errorMessage === "unauthorized") {

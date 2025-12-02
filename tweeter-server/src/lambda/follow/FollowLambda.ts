@@ -12,17 +12,17 @@ export const handler = async (
 ): Promise<FollowResponse> => {
   try {
     await authorizationService.authorize(request.token);
-    const [followerCount, followeeCount] = await followService.follow(
-      request.token,
-      request.userToFollowOrUnfollow
-    );
+  const [followerCount, followeeCount] = await followService.follow(
+    request.token,
+    request.userToFollowOrUnfollow
+  );
 
-    return {
-      success: true,
-      message: null,
-      followerCount,
-      followeeCount,
-    };
+  return {
+    success: true,
+    message: null,
+    followerCount,
+    followeeCount,
+  };
   } catch (error) {
     const errorMessage = (error as Error).message;
     if (errorMessage === "unauthorized") {

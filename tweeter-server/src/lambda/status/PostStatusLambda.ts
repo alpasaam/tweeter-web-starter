@@ -12,12 +12,12 @@ export const handler = async (
 ): Promise<TweeterResponse> => {
   try {
     await authorizationService.authorize(request.token);
-    await statusService.postStatus(request.token, request.newStatus);
+  await statusService.postStatus(request.token, request.newStatus);
 
-    return {
-      success: true,
-      message: null,
-    };
+  return {
+    success: true,
+    message: null,
+  };
   } catch (error) {
     const errorMessage = (error as Error).message;
     if (errorMessage === "unauthorized") {

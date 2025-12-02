@@ -16,19 +16,19 @@ export const handler = async (
 ): Promise<PagedItemResponse<StatusDto>> => {
   try {
     await authorizationService.authorize(request.token);
-    const [items, hasMore] = await statusService.loadMoreFeedItems(
-      request.token,
-      request.userAlias,
-      request.pageSize,
-      request.lastItem
-    );
+  const [items, hasMore] = await statusService.loadMoreFeedItems(
+    request.token,
+    request.userAlias,
+    request.pageSize,
+    request.lastItem
+  );
 
-    return {
-      success: true,
-      message: null,
-      items: items,
-      hasMore,
-    };
+  return {
+    success: true,
+    message: null,
+    items: items,
+    hasMore,
+  };
   } catch (error) {
     const errorMessage = (error as Error).message;
     if (errorMessage === "unauthorized") {

@@ -9,17 +9,17 @@ export const handler = async (
   request: LoginRequest
 ): Promise<LoginResponse> => {
   try {
-    const [user, authToken] = await userService.login(
-      request.alias,
-      request.password
-    );
+  const [user, authToken] = await userService.login(
+    request.alias,
+    request.password
+  );
 
-    return {
-      success: true,
-      message: null,
-      user,
-      authToken,
-    };
+  return {
+    success: true,
+    message: null,
+    user,
+    authToken,
+  };
   } catch (error) {
     const errorMessage = (error as Error).message;
     return {
