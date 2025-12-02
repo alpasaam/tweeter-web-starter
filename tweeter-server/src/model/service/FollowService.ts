@@ -1,15 +1,29 @@
-import { AuthToken, User, FakeData, UserDto } from "tweeter-shared";
+import { User, UserDto } from "tweeter-shared";
 import { Service } from "./Service";
+import { DAOFactory } from "../dao/DAOFactory";
 
 export class FollowService implements Service {
+  private daoFactory: DAOFactory;
+
+  constructor(daoFactory: DAOFactory) {
+    this.daoFactory = daoFactory;
+  }
+
   public async loadMoreFollowees(
     token: string,
     userAlias: string,
     pageSize: number,
     lastItem: UserDto | null
   ): Promise<[UserDto[], boolean]> {
-    // TODO: Replace with the result of calling server
-    return this.getFakeData(lastItem, pageSize, userAlias);
+    const followDAO = this.daoFactory.getFollowDAO();
+    const lastFolloweeAlias = lastItem ? lastItem.alias : null;
+    const [users, hasMore] = await followDAO.getFollowees(
+      userAlias,
+      pageSize,
+      lastFolloweeAlias
+    );
+    const dtos = users.map((user) => user.dto);
+    return [dtos, hasMore];
   }
 
   public async loadMoreFollowers(
@@ -18,34 +32,25 @@ export class FollowService implements Service {
     pageSize: number,
     lastItem: UserDto | null
   ): Promise<[UserDto[], boolean]> {
-    // TODO: Replace with the result of calling server
-    return this.getFakeData(lastItem, pageSize, userAlias);
-  }
-
-  private async getFakeData(
-    lastItem: UserDto | null,
-    pageSize: number,
-    userAlias: string
-  ): Promise<[UserDto[], boolean]> {
-    const [items, hasMore] = FakeData.instance.getPageOfUsers(
-      User.fromDto(lastItem),
+    const followDAO = this.daoFactory.getFollowDAO();
+    const lastFollowerAlias = lastItem ? lastItem.alias : null;
+    const [users, hasMore] = await followDAO.getFollowers(
+      userAlias,
       pageSize,
-      userAlias
+      lastFollowerAlias
     );
-    const dtos = items.map((user) => user.dto);
+    const dtos = users.map((user) => user.dto);
     return [dtos, hasMore];
   }
 
   public async getFolloweeCount(token: string, user: UserDto): Promise<number> {
-    // TODO: Replace with the result of calling server
-    const userDomain = User.fromDto(user);
-    return FakeData.instance.getFolloweeCount(userDomain!.alias);
+    const followDAO = this.daoFactory.getFollowDAO();
+    return await followDAO.getFolloweeCount(user.alias);
   }
 
   public async getFollowerCount(token: string, user: UserDto): Promise<number> {
-    // TODO: Replace with the result of calling server
-    const userDomain = User.fromDto(user);
-    return FakeData.instance.getFollowerCount(userDomain!.alias);
+    const followDAO = this.daoFactory.getFollowDAO();
+    return await followDAO.getFollowerCount(user.alias);
   }
 
   public async getIsFollowerStatus(
@@ -53,21 +58,27 @@ export class FollowService implements Service {
     user: UserDto,
     selectedUser: UserDto
   ): Promise<boolean> {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.isFollower();
+    const followDAO = this.daoFactory.getFollowDAO();
+    return await followDAO.isFollower(user.alias, selectedUser.alias);
   }
 
   public async follow(
     token: string,
     userToFollow: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
-    // Pause so we can see the follow message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
+    const followDAO = this.daoFactory.getFollowDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    // TODO: Call the server
+    const authToken = await authTokenDAO.getAuthToken(token);
+    if (!authToken) {
+      throw new Error("Invalid token");
+    }
 
-    const followerCount = await this.getFollowerCount(token, userToFollow);
-    const followeeCount = await this.getFolloweeCount(token, userToFollow);
+    const followerAlias = authToken.userAlias;
+    await followDAO.putFollow(followerAlias, userToFollow.alias);
+
+    const followerCount = await followDAO.getFollowerCount(userToFollow.alias);
+    const followeeCount = await followDAO.getFolloweeCount(followerAlias);
 
     return [followerCount, followeeCount];
   }
@@ -76,13 +87,19 @@ export class FollowService implements Service {
     token: string,
     userToUnfollow: UserDto
   ): Promise<[followerCount: number, followeeCount: number]> {
-    // Pause so we can see the unfollow message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
+    const followDAO = this.daoFactory.getFollowDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    // TODO: Call the server
+    const authToken = await authTokenDAO.getAuthToken(token);
+    if (!authToken) {
+      throw new Error("Invalid token");
+    }
 
-    const followerCount = await this.getFollowerCount(token, userToUnfollow);
-    const followeeCount = await this.getFolloweeCount(token, userToUnfollow);
+    const followerAlias = authToken.userAlias;
+    await followDAO.deleteFollow(followerAlias, userToUnfollow.alias);
+
+    const followerCount = await followDAO.getFollowerCount(userToUnfollow.alias);
+    const followeeCount = await followDAO.getFolloweeCount(followerAlias);
 
     return [followerCount, followeeCount];
   }

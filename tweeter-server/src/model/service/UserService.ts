@@ -1,16 +1,18 @@
-import {
-  User,
-  FakeData,
-  UserDto,
-  AuthToken,
-  AuthTokenDto,
-} from "tweeter-shared";
+import { User, UserDto, AuthToken, AuthTokenDto } from "tweeter-shared";
 import { Service } from "./Service";
+import { DAOFactory } from "../dao/DAOFactory";
+const bcrypt = require("bcryptjs");
 
 export class UserService implements Service {
+  private daoFactory: DAOFactory;
+
+  constructor(daoFactory: DAOFactory) {
+    this.daoFactory = daoFactory;
+  }
+
   public async getUser(token: string, alias: string): Promise<UserDto | null> {
-    // TODO: Replace with the result of calling server
-    const user = FakeData.instance.findUserByAlias(alias);
+    const userDAO = this.daoFactory.getUserDAO();
+    const user = await userDAO.getUser(alias);
     return user ? user.dto : null;
   }
 
@@ -18,14 +20,32 @@ export class UserService implements Service {
     alias: string,
     password: string
   ): Promise<[UserDto, AuthTokenDto]> {
-    // TODO: Replace with the result of calling the server
-    const user = FakeData.instance.firstUser;
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
 
-    if (user === null) {
+    const passwordHash = await userDAO.getPasswordHash(alias);
+    if (!passwordHash) {
       throw new Error("Invalid alias or password");
     }
 
-    return [user.dto, FakeData.instance.authToken.dto];
+    const isPasswordValid = await bcrypt.compare(password, passwordHash);
+    if (!isPasswordValid) {
+      throw new Error("Invalid alias or password");
+    }
+
+    const user = await userDAO.getUser(alias);
+    if (!user) {
+      throw new Error("Invalid alias or password");
+    }
+
+    const authToken = AuthToken.Generate();
+    await authTokenDAO.putAuthToken(
+      authToken.token,
+      user.alias,
+      authToken.timestamp
+    );
+
+    return [user.dto, authToken.dto];
   }
 
   public async register(
@@ -36,18 +56,38 @@ export class UserService implements Service {
     imageStringBase64: string,
     imageFileExtension: string
   ): Promise<[UserDto, AuthTokenDto]> {
-    // TODO: Replace with the result of calling the server
-    const user = FakeData.instance.firstUser;
+    const userDAO = this.daoFactory.getUserDAO();
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+    const s3DAO = this.daoFactory.getS3DAO();
 
-    if (user === null) {
-      throw new Error("Invalid registration");
+    const existingUser = await userDAO.getUser(alias);
+    if (existingUser !== null) {
+      throw new Error("Alias already taken");
     }
 
-    return [user.dto, FakeData.instance.authToken.dto];
+    const imageUrl = await s3DAO.uploadImage(
+      imageStringBase64,
+      imageFileExtension,
+      alias
+    );
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = new User(firstName, lastName, alias, imageUrl);
+    await userDAO.putUser(user, passwordHash);
+
+    const authToken = AuthToken.Generate();
+    await authTokenDAO.putAuthToken(
+      authToken.token,
+      user.alias,
+      authToken.timestamp
+    );
+
+    return [user.dto, authToken.dto];
   }
 
   public async logout(token: string): Promise<void> {
-    // Pause so we can see the logging out message. Delete when the call to the server is implemented.
-    await new Promise((res) => setTimeout(res, 1000));
+    const authTokenDAO = this.daoFactory.getAuthTokenDAO();
+    await authTokenDAO.deleteAuthToken(token);
   }
 }

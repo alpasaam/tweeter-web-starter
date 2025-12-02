@@ -4,11 +4,17 @@ import type {
   StatusDto,
 } from "tweeter-shared";
 import { StatusService } from "../../model/service/StatusService";
+import { AuthorizationService } from "../../model/service/AuthorizationService";
+import { DynamoDBDAOFactory } from "../../model/dao/DynamoDBDAOFactory";
+
+const daoFactory = new DynamoDBDAOFactory();
+const authorizationService = new AuthorizationService(daoFactory);
+const statusService = new StatusService(daoFactory);
 
 export const handler = async (
   request: PagedItemRequest<StatusDto>
 ): Promise<PagedItemResponse<StatusDto>> => {
-  const statusService = new StatusService();
+  await authorizationService.authorize(request.token);
   const [items, hasMore] = await statusService.loadMoreStoryItems(
     request.token,
     request.userAlias,
