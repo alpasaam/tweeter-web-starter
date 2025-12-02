@@ -19,10 +19,10 @@ export class RegisterPresenter extends AuthItemPresenter<RegisterView> {
     imageFileExtension?: string
   ): Promise<[User, AuthToken]> {
     return this.service.register(
-      userAlias,
-      password,
       firstName!,
       lastName!,
+      userAlias,
+      password,
       imageBytes!,
       imageFileExtension!
     );

@@ -78,7 +78,7 @@ export class FollowService implements Service {
     await followDAO.putFollow(followerAlias, userToFollow.alias);
 
     const followerCount = await followDAO.getFollowerCount(userToFollow.alias);
-    const followeeCount = await followDAO.getFolloweeCount(followerAlias);
+    const followeeCount = await followDAO.getFolloweeCount(userToFollow.alias);
 
     return [followerCount, followeeCount];
   }
@@ -99,7 +99,7 @@ export class FollowService implements Service {
     await followDAO.deleteFollow(followerAlias, userToUnfollow.alias);
 
     const followerCount = await followDAO.getFollowerCount(userToUnfollow.alias);
-    const followeeCount = await followDAO.getFolloweeCount(followerAlias);
+    const followeeCount = await followDAO.getFolloweeCount(userToUnfollow.alias);
 
     return [followerCount, followeeCount];
   }

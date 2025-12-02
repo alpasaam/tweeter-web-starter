@@ -32,6 +32,7 @@ export class UserHookPresenter extends Presenter<UserHookView> {
 
   private extractAlias = (value: string): string => {
     const index = value.indexOf("@");
-    return value.substring(index);
+    if (index === -1) return value;
+    return value.substring(index + 1);
   };
 }
