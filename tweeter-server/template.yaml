@@ -300,29 +300,29 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: PostStatusQueue
-      MessageRetentionPeriod: 345600 # 4 days (default, good for retries)
-      VisibilityTimeout: 300 # 5 minutes (matches Lambda timeout)
-      ReceiveMessageWaitTimeSeconds: 0 # Short polling (immediate processing)
+      MessageRetentionPeriod: 345600 # 4 days
+      VisibilityTimeout: 300 # 5 minutes
+      ReceiveMessageWaitTimeSeconds: 0
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt PostStatusDLQ.Arn
-        maxReceiveCount: 3 # Retry 3 times before sending to DLQ
+        maxReceiveCount: 3 # Retry 3 times
 
   PostStatusDLQ:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: PostStatusDLQ
-      MessageRetentionPeriod: 1209600 # 14 days for DLQ
+      MessageRetentionPeriod: 1209600 # 14 days
 
   FeedUpdateQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: FeedUpdateQueue
       MessageRetentionPeriod: 345600 # 4 days
-      VisibilityTimeout: 300 # 5 minutes (matches Lambda timeout)
-      ReceiveMessageWaitTimeSeconds: 0 # Short polling
+      VisibilityTimeout: 300 # 5 minutes
+      ReceiveMessageWaitTimeSeconds: 0
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt FeedUpdateDLQ.Arn
-        maxReceiveCount: 3 # Retry 3 times before sending to DLQ
+        maxReceiveCount: 3 # Retry 3 times
 
   FeedUpdateDLQ:
     Type: AWS::SQS::Queue
