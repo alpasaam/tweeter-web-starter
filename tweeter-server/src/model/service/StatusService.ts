@@ -3,12 +3,13 @@ import { Service } from "./Service";
 import { DAOFactory } from "../dao/DAOFactory";
 import { SQSClient } from "@aws-sdk/client-sqs";
 
+let cachedQueueUrl: string | null = null;
+
 export class StatusService implements Service {
   private daoFactory: DAOFactory;
   private sqsClient: SQSClient;
   private postStatusQueueName: string;
   private region: string;
-  private cachedQueueUrl: string | null = null;
 
   constructor(daoFactory: DAOFactory, postStatusQueueName?: string) {
     this.daoFactory = daoFactory;
@@ -19,8 +20,8 @@ export class StatusService implements Service {
   }
 
   private async getQueueUrl(queueName: string): Promise<string> {
-    if (this.cachedQueueUrl) {
-      return this.cachedQueueUrl;
+    if (cachedQueueUrl) {
+      return cachedQueueUrl;
     }
 
     const { GetQueueUrlCommand } = await import("@aws-sdk/client-sqs");
@@ -30,10 +31,9 @@ export class StatusService implements Service {
     if (!response.QueueUrl) {
       throw new Error(`Queue ${queueName} not found`);
     }
-    
-    // Cache the URL for subsequent calls
-    this.cachedQueueUrl = response.QueueUrl;
-    return this.cachedQueueUrl;
+
+    cachedQueueUrl = response.QueueUrl;
+    return cachedQueueUrl;
   }
 
   public async loadMoreFeedItems(
@@ -84,15 +84,20 @@ export class StatusService implements Service {
       throw new Error("POST_STATUS_QUEUE_NAME environment variable not set");
     }
 
-    const queueUrl = await this.getQueueUrl(this.postStatusQueueName);
-    const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
-    await this.sqsClient.send(
-      new SendMessageCommand({
-        QueueUrl: queueUrl,
-        MessageBody: JSON.stringify({
-          status: newStatus,
-        }),
+    this.getQueueUrl(this.postStatusQueueName)
+      .then(async (queueUrl) => {
+        const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
+        return this.sqsClient.send(
+          new SendMessageCommand({
+            QueueUrl: queueUrl,
+            MessageBody: JSON.stringify({
+              status: newStatus,
+            }),
+          })
+        );
       })
-    );
+      .catch((error) => {
+        console.error("Error sending status to SQS queue:", error);
+      });
   }
 }
