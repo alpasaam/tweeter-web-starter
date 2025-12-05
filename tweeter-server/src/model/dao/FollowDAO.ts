@@ -13,6 +13,11 @@ export interface FollowDAO {
     pageSize: number,
     lastFollowerAlias: string | null
   ): Promise<[User[], boolean]>;
+  getFollowerAliases(
+    followeeAlias: string,
+    pageSize: number,
+    lastFollowerAlias: string | null
+  ): Promise<[string[], boolean]>;
   getFolloweeCount(followerAlias: string): Promise<number>;
   getFollowerCount(followeeAlias: string): Promise<number>;
   isFollower(followerAlias: string, followeeAlias: string): Promise<boolean>;

@@ -1,4 +1,9 @@
-import { BatchWriteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  BatchWriteCommand,
+  BatchWriteCommandInput,
+  BatchWriteCommandOutput,
+  PutCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Status } from "tweeter-shared";
 import { FeedDAO } from "../FeedDAO";
 import { BaseDynamoDAO } from "./BaseDynamoDAO";
@@ -63,13 +68,37 @@ export class DynamoDBFeedDAO extends BaseDynamoDAO implements FeedDAO {
         },
       }));
 
-      await this.client.send(
-        new BatchWriteCommand({
-          RequestItems: {
-            [this.tableName]: writeRequests,
-          },
-        })
-      );
+      const params: BatchWriteCommandInput = {
+        RequestItems: {
+          [this.tableName]: writeRequests,
+        },
+      };
+
+      const resp = await this.client.send(new BatchWriteCommand(params));
+      await this.putUnprocessedItems(resp, params);
+    }
+  }
+
+  private async putUnprocessedItems(
+    resp: BatchWriteCommandOutput,
+    params: BatchWriteCommandInput
+  ) {
+    let delay = 10;
+    let attempts = 0;
+    while (
+      resp.UnprocessedItems !== undefined &&
+      Object.keys(resp.UnprocessedItems).length > 0
+    ) {
+      attempts++;
+      if (attempts > 1) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        if (delay < 1000) {
+          delay += 100;
+        }
+      }
+
+      params.RequestItems = resp.UnprocessedItems;
+      resp = await this.client.send(new BatchWriteCommand(params));
     }
   }
 }

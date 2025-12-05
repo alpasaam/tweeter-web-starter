@@ -142,6 +142,41 @@ export class DynamoDBFollowDAO extends BaseDynamoDAO implements FollowDAO {
     return response.Count ?? 0;
   }
 
+  async getFollowerAliases(
+    followeeAlias: string,
+    pageSize: number,
+    lastFollowerAlias: string | null
+  ): Promise<[string[], boolean]> {
+    const params: any = {
+      TableName: this.tableName,
+      IndexName: this.indexName,
+      KeyConditionExpression: "followee_alias = :followee_alias",
+      ExpressionAttributeValues: {
+        ":followee_alias": followeeAlias,
+      },
+      ProjectionExpression: "follower_alias",
+      Limit: pageSize,
+    };
+
+    if (lastFollowerAlias !== null) {
+      params.ExclusiveStartKey = {
+        followee_alias: followeeAlias,
+        follower_alias: lastFollowerAlias,
+      };
+    }
+
+    const response = await this.client.send(new QueryCommand(params));
+
+    if (!response.Items || response.Items.length === 0) {
+      return [[], false];
+    }
+
+    const aliases = response.Items.map((item) => item.follower_alias);
+    const hasMore = response.LastEvaluatedKey !== undefined;
+
+    return [aliases, hasMore];
+  }
+
   async getFollowerCount(followeeAlias: string): Promise<number> {
     const params = {
       TableName: this.tableName,

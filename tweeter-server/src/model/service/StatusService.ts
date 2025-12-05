@@ -1,12 +1,31 @@
 import { Status, StatusDto } from "tweeter-shared";
 import { Service } from "./Service";
 import { DAOFactory } from "../dao/DAOFactory";
+import { SQSClient } from "@aws-sdk/client-sqs";
 
 export class StatusService implements Service {
   private daoFactory: DAOFactory;
+  private sqsClient: SQSClient;
+  private postStatusQueueName: string;
+  private region: string;
 
-  constructor(daoFactory: DAOFactory) {
+  constructor(daoFactory: DAOFactory, postStatusQueueName?: string) {
     this.daoFactory = daoFactory;
+    this.region = process.env.AWS_REGION || "us-west-2";
+    this.sqsClient = new SQSClient({ region: this.region });
+    this.postStatusQueueName =
+      postStatusQueueName || process.env.POST_STATUS_QUEUE_NAME || "";
+  }
+
+  private async getQueueUrl(queueName: string): Promise<string> {
+    const { GetQueueUrlCommand } = await import("@aws-sdk/client-sqs");
+    const response = await this.sqsClient.send(
+      new GetQueueUrlCommand({ QueueName: queueName })
+    );
+    if (!response.QueueUrl) {
+      throw new Error(`Queue ${queueName} not found`);
+    }
+    return response.QueueUrl;
   }
 
   public async loadMoreFeedItems(
@@ -45,8 +64,6 @@ export class StatusService implements Service {
 
   public async postStatus(token: string, newStatus: StatusDto): Promise<void> {
     const statusDAO = this.daoFactory.getStatusDAO();
-    const feedDAO = this.daoFactory.getFeedDAO();
-    const followDAO = this.daoFactory.getFollowDAO();
 
     const status = Status.fromDto(newStatus);
     if (!status) {
@@ -55,14 +72,19 @@ export class StatusService implements Service {
 
     await statusDAO.putStatus(status);
 
-    const [followers] = await followDAO.getFollowers(status.user.alias, 10000, null);
-    const feedItems = followers.map((follower) => ({
-      userAlias: follower.alias,
-      status: status,
-    }));
-
-    if (feedItems.length > 0) {
-      await feedDAO.batchPutFeedItems(feedItems);
+    if (!this.postStatusQueueName) {
+      throw new Error("POST_STATUS_QUEUE_NAME environment variable not set");
     }
+
+    const queueUrl = await this.getQueueUrl(this.postStatusQueueName);
+    const { SendMessageCommand } = await import("@aws-sdk/client-sqs");
+    await this.sqsClient.send(
+      new SendMessageCommand({
+        QueueUrl: queueUrl,
+        MessageBody: JSON.stringify({
+          status: newStatus,
+        }),
+      })
+    );
   }
 }

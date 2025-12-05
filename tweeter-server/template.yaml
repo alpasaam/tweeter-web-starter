@@ -293,13 +293,42 @@ Resources:
               responses: *commonSwaggerResponses
 
   #
-  # SQS Queues  (This will become relevant in Milestone 4. For M3, leave this section commented out.)
+  # SQS Queues for async feed processing
   #
 
-  #   MyQueue:
-  #     Type: AWS::SQS::Queue
-  #     Properties:
-  #       QueueName: MyQueue
+  PostStatusQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: PostStatusQueue
+      MessageRetentionPeriod: 345600 # 4 days (default, good for retries)
+      VisibilityTimeout: 300 # 5 minutes (matches Lambda timeout)
+      ReceiveMessageWaitTimeSeconds: 0 # Short polling (immediate processing)
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PostStatusDLQ.Arn
+        maxReceiveCount: 3 # Retry 3 times before sending to DLQ
+
+  PostStatusDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: PostStatusDLQ
+      MessageRetentionPeriod: 1209600 # 14 days for DLQ
+
+  FeedUpdateQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: FeedUpdateQueue
+      MessageRetentionPeriod: 345600 # 4 days
+      VisibilityTimeout: 300 # 5 minutes (matches Lambda timeout)
+      ReceiveMessageWaitTimeSeconds: 0 # Short polling
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt FeedUpdateDLQ.Arn
+        maxReceiveCount: 3 # Retry 3 times before sending to DLQ
+
+  FeedUpdateDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: FeedUpdateDLQ
+      MessageRetentionPeriod: 1209600 # 14 days for DLQ
 
   #
   # Lambda Layer (reused by all Lambda functions)
@@ -520,7 +549,11 @@ Resources:
     Properties:
       FunctionName: postStatusLambda
       Handler: lambda/status/PostStatusLambda.handler
+      Timeout: 300
       Policies: *commonPolicies
+      Environment:
+        Variables:
+          POST_STATUS_QUEUE_NAME: PostStatusQueue
       Events:
         PostApi:
           Type: Api
@@ -530,21 +563,42 @@ Resources:
             Method: POST
 
   #
-  # SQS Queue Lambda Functions  (This will become relevant in Milestone 4. For M3, leave this section commented out.)
+  # SQS Queue Lambda Functions
   #
 
-  #   MyQueueFunction:
-  #     Type: AWS::Serverless::Function
-  #     Properties:
-  #       FunctionName: MyQueueFunction
-  #       Handler: <PATH TO LAMBDA HANDLER>
-  #       Policies: *commonPolicies
-  #       Events:
-  #         SQSTrigger:
-  #           Type: SQS
-  #           Properties:
-  #             Queue: !GetAtt MyQueue.Arn
-  #             Enabled: true
+  PostStatusQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PostStatusQueueProcessor
+      Handler: lambda/queue/PostStatusQueueProcessor.handler
+      Timeout: 300
+      Policies: *commonPolicies
+      Environment:
+        Variables:
+          FEED_UPDATE_QUEUE_NAME: FeedUpdateQueue
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PostStatusQueue.Arn
+            BatchSize: 1 # Process one status post at a time
+            Enabled: true
+
+  FeedUpdateQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FeedUpdateQueueProcessor
+      Handler: lambda/queue/FeedUpdateQueueProcessor.handler
+      Timeout: 300
+      Policies: *commonPolicies
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FeedUpdateQueue.Arn
+            BatchSize: 10 # Process up to 10 messages at once (SQS best practice)
+            MaximumBatchingWindowInSeconds: 5 # Wait up to 5 seconds to batch messages
+            Enabled: true
 
   #
   # DynamoDB Tables
