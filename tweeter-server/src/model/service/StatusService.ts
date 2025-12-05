@@ -8,6 +8,7 @@ export class StatusService implements Service {
   private sqsClient: SQSClient;
   private postStatusQueueName: string;
   private region: string;
+  private cachedQueueUrl: string | null = null;
 
   constructor(daoFactory: DAOFactory, postStatusQueueName?: string) {
     this.daoFactory = daoFactory;
@@ -18,6 +19,10 @@ export class StatusService implements Service {
   }
 
   private async getQueueUrl(queueName: string): Promise<string> {
+    if (this.cachedQueueUrl) {
+      return this.cachedQueueUrl;
+    }
+
     const { GetQueueUrlCommand } = await import("@aws-sdk/client-sqs");
     const response = await this.sqsClient.send(
       new GetQueueUrlCommand({ QueueName: queueName })
@@ -25,7 +30,10 @@ export class StatusService implements Service {
     if (!response.QueueUrl) {
       throw new Error(`Queue ${queueName} not found`);
     }
-    return response.QueueUrl;
+    
+    // Cache the URL for subsequent calls
+    this.cachedQueueUrl = response.QueueUrl;
+    return this.cachedQueueUrl;
   }
 
   public async loadMoreFeedItems(
